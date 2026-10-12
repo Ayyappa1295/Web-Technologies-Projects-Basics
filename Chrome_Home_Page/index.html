@@ -1,0 +1,514 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Chrome New Tab Clone</title>
+
+<style>
+* {
+  box-sizing: border-box;
+}
+
+:root {
+  --text: #202124;
+  --surface: #ffffff;
+  --bar: #f1f3f4;
+  --muted: #5f6368;
+}
+
+body {
+  margin: 0;
+  min-height: 100vh;
+  font-family: Arial, sans-serif;
+  color: var(--text);
+  background: #fff;
+  transition: background .3s, color .3s;
+}
+
+body.dark {
+  --text: #e8eaed;
+  --surface: #292a2d;
+  --bar: #303134;
+  --muted: #bdc1c6;
+  background: #202124;
+}
+
+.topbar {
+  display: flex;
+  justify-content: flex-end;
+  align-items: center;
+  gap: 22px;
+  padding: 18px 25px;
+  font-size: 13px;
+}
+
+a {
+  color: inherit;
+  text-decoration: none;
+}
+
+a:hover {
+  text-decoration: underline;
+}
+
+.apps {
+  font-size: 23px;
+  cursor: pointer;
+  border: 0;
+  background: transparent;
+  color: var(--text);
+}
+
+.avatar {
+  width: 34px;
+  height: 34px;
+  border-radius: 50%;
+  background: #4285f4;
+  color: white;
+  border: 0;
+  cursor: pointer;
+  font-size: 16px;
+}
+
+main {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  padding: 75px 20px 100px;
+}
+
+.logo {
+  font-size: clamp(65px, 9vw, 92px);
+  font-weight: 500;
+  letter-spacing: -5px;
+  margin-bottom: 28px;
+  user-select: none;
+}
+
+.blue { color: #4285f4; }
+.red { color: #ea4335; }
+.yellow { color: #fbbc05; }
+.green { color: #34a853; }
+
+.clock {
+  font-size: 17px;
+  color: var(--muted);
+  margin: -10px 0 24px;
+}
+
+.search-box {
+  width: min(100%, 584px);
+  height: 48px;
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  border-radius: 28px;
+  padding: 0 17px;
+  background: var(--surface);
+  border: 1px solid #dfe1e5;
+  box-shadow: 0 1px 5px #00000010;
+}
+
+body.dark .search-box {
+  border-color: #5f6368;
+}
+
+.search-box:hover,
+.search-box:focus-within {
+  box-shadow: 0 2px 8px #00000025;
+}
+
+.search-icon {
+  font-size: 20px;
+  color: #9aa0a6;
+}
+
+.search-box input {
+  flex: 1;
+  min-width: 0;
+  border: 0;
+  outline: none;
+  background: transparent;
+  color: var(--text);
+  font-size: 16px;
+}
+
+.search-box button {
+  background: transparent;
+  border: 0;
+  cursor: pointer;
+  font-size: 19px;
+}
+
+.shortcuts {
+  display: grid;
+  grid-template-columns: repeat(5, 84px);
+  gap: 14px 10px;
+  margin-top: 34px;
+  max-width: 100%;
+}
+
+.shortcut {
+  position: relative;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 11px;
+  padding: 12px 3px;
+  border-radius: 8px;
+  cursor: pointer;
+  font-size: 12px;
+  text-align: center;
+}
+
+.shortcut:hover {
+  background: var(--bar);
+}
+
+.shortcut-icon {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  width: 48px;
+  height: 48px;
+  border-radius: 50%;
+  background: var(--bar);
+  font-size: 23px;
+}
+
+.shortcut-name {
+  width: 78px;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+.remove {
+  position: absolute;
+  top: 2px;
+  right: 0;
+  display: none;
+  border: 0;
+  background: var(--surface);
+  color: var(--text);
+  border-radius: 50%;
+  cursor: pointer;
+}
+
+.shortcut:hover .remove {
+  display: block;
+}
+
+.add {
+  border: 0;
+  background: transparent;
+  color: var(--text);
+  font: inherit;
+}
+
+.add .shortcut-icon {
+  font-size: 30px;
+}
+
+#message {
+  color: var(--muted);
+  font-size: 13px;
+  margin-top: 22px;
+  min-height: 16px;
+}
+
+.customize {
+  position: fixed;
+  right: 20px;
+  bottom: 20px;
+  background: var(--bar);
+  border: 0;
+  border-radius: 22px;
+  padding: 12px 17px;
+  color: var(--text);
+  cursor: pointer;
+  box-shadow: 0 1px 3px #00000015;
+}
+
+.panel {
+  position: fixed;
+  right: 20px;
+  bottom: 75px;
+  width: min(320px, calc(100vw - 40px));
+  padding: 20px;
+  border-radius: 18px;
+  background: var(--surface);
+  box-shadow: 0 4px 20px #00000030;
+  display: none;
+}
+
+.panel.show {
+  display: block;
+}
+
+.panel h3 {
+  margin-top: 0;
+}
+
+.panel button,
+.panel select {
+  padding: 10px;
+  border: 1px solid #dadce0;
+  border-radius: 8px;
+  background: var(--surface);
+  color: var(--text);
+  cursor: pointer;
+  margin: 5px 0;
+}
+
+@media (max-width: 520px) {
+  main { padding-top: 75px; }
+  .shortcuts {
+    grid-template-columns: repeat(3, 80px);
+    gap: 8px;
+  }
+  .topbar { gap: 15px; }
+}
+</style>
+</head>
+
+<body>
+<header class="topbar">
+  <a href="https://mail.google.com">Gmail</a>
+  <a href="https://images.google.com">Images</a>
+  <button class="apps" title="Google apps"
+    onclick="window.open('https://about.google/products/','_blank')">⠿</button>
+  <button class="avatar" title="Profile">K</button>
+</header>
+
+<main>
+  <div class="logo" aria-label="Google">
+    <span class="blue">G</span><span class="red">o</span><span class="yellow">o</span><span class="blue">g</span><span class="green">l</span><span class="red">e</span>
+  </div>
+
+  <div class="clock" id="clock"></div>
+
+  <form class="search-box" id="searchForm">
+    <span class="search-icon">⌕</span>
+    <input id="searchInput" type="text"
+      placeholder="Search Google or type a URL"
+      aria-label="Search Google" autocomplete="off">
+    <button type="submit" title="Search">🔍</button>
+  </form>
+
+  <div class="shortcuts" id="shortcuts"></div>
+  <p id="message"></p>
+</main>
+
+<button class="customize" id="customizeBtn">
+  ⚙ Customize Chrome
+</button>
+
+<section class="panel" id="panel">
+  <h3>Customize this page</h3>
+  <p>Choose your appearance</p>
+  <button id="themeBtn">🌙 Toggle dark mode</button>
+  <br>
+  <label for="background">Background color</label>
+  <br>
+  <select id="background">
+    <option value="#ffffff">Classic white</option>
+    <option value="#e8f0fe">Soft blue</option>
+    <option value="#fce8e6">Soft pink</option>
+    <option value="#e6f4ea">Soft green</option>
+    <option value="#fef7e0">Soft yellow</option>
+  </select>
+  <br>
+  <button id="resetBtn">Reset appearance</button>
+</section>
+
+<script>
+const defaultSites = [
+  { name: "YouTube", url: "https://youtube.com", icon: "▶️" },
+  { name: "Gmail", url: "https://mail.google.com", icon: "✉️" },
+  { name: "GitHub", url: "https://github.com", icon: "🐙" },
+  { name: "Instagram", url: "https://instagram.com", icon: "📸" },
+  { name: "Google", url: "https://google.com", icon: "🌐" }
+];
+
+let sites;
+try {
+  sites = JSON.parse(localStorage.getItem("chromeSites")) || defaultSites;
+  if (!Array.isArray(sites)) sites = defaultSites;
+} catch {
+  sites = defaultSites;
+}
+
+const shortcuts = document.getElementById("shortcuts");
+const message = document.getElementById("message");
+
+function saveSites() {
+  localStorage.setItem("chromeSites", JSON.stringify(sites));
+}
+
+function renderSites() {
+  shortcuts.replaceChildren();
+
+  sites.forEach((site, index) => {
+    const item = document.createElement("div");
+    item.className = "shortcut";
+    item.title = site.url;
+
+    const link = document.createElement("a");
+    link.href = site.url;
+    link.target = "_blank";
+    link.rel = "noopener noreferrer";
+    link.style.display = "flex";
+    link.style.flexDirection = "column";
+    link.style.alignItems = "center";
+    link.style.gap = "11px";
+    link.style.color = "inherit";
+    link.style.textDecoration = "none";
+
+    const icon = document.createElement("span");
+    icon.className = "shortcut-icon";
+    icon.textContent = site.icon || "🌐";
+
+    const name = document.createElement("span");
+    name.className = "shortcut-name";
+    name.textContent = site.name;
+
+    link.append(icon, name);
+
+    const remove = document.createElement("button");
+    remove.className = "remove";
+    remove.textContent = "×";
+    remove.title = "Remove shortcut";
+    remove.setAttribute("aria-label", "Remove " + site.name);
+
+    remove.onclick = (event) => {
+      event.stopPropagation();
+      sites.splice(index, 1);
+      saveSites();
+      renderSites();
+      message.textContent = "Shortcut removed.";
+    };
+
+    item.append(link, remove);
+    shortcuts.append(item);
+  });
+
+  const add = document.createElement("button");
+  add.className = "shortcut add";
+  add.innerHTML = '<span class="shortcut-icon">+</span><span>Add shortcut</span>';
+
+  add.onclick = () => {
+    if (sites.length >= 15) {
+      message.textContent = "Maximum 15 shortcuts allowed.";
+      return;
+    }
+
+    const name = prompt("Enter website name:");
+    if (!name || !name.trim()) return;
+
+    let rawUrl = prompt("Enter website URL (example.com):");
+    if (!rawUrl || !rawUrl.trim()) return;
+
+    rawUrl = rawUrl.trim();
+    if (!/^https?:\/\//i.test(rawUrl)) rawUrl = "https://" + rawUrl;
+
+    try {
+      const parsed = new URL(rawUrl);
+      if (!["http:", "https:"].includes(parsed.protocol) ||
+          !parsed.hostname.includes(".")) {
+        throw new Error("Invalid URL");
+      }
+
+      sites.push({
+        name: name.trim(),
+        url: parsed.href,
+        icon: "🌐"
+      });
+      saveSites();
+      renderSites();
+      message.textContent = "Shortcut added successfully!";
+    } catch {
+      message.textContent = "Please enter a valid website URL.";
+    }
+  };
+
+  shortcuts.append(add);
+}
+
+document.getElementById("searchForm").addEventListener("submit", (event) => {
+  event.preventDefault();
+  const query = document.getElementById("searchInput").value.trim();
+
+  if (!query) {
+    document.getElementById("searchInput").focus();
+    return;
+  }
+
+  window.location.href =
+    "https://www.google.com/search?q=" + encodeURIComponent(query);
+});
+
+function updateClock() {
+  const now = new Date();
+  document.getElementById("clock").textContent =
+    now.toLocaleDateString(undefined, {
+      weekday: "long",
+      month: "long",
+      day: "numeric"
+    }) + " · " +
+    now.toLocaleTimeString(undefined, {
+      hour: "2-digit",
+      minute: "2-digit"
+    });
+}
+
+updateClock();
+setInterval(updateClock, 1000);
+
+const panel = document.getElementById("panel");
+
+document.getElementById("customizeBtn").onclick = () => {
+  panel.classList.toggle("show");
+};
+
+document.getElementById("themeBtn").onclick = () => {
+  document.body.classList.toggle("dark");
+  localStorage.setItem(
+    "chromeDark",
+    document.body.classList.contains("dark")
+  );
+};
+
+if (localStorage.getItem("chromeDark") === "true") {
+  document.body.classList.add("dark");
+}
+
+const background = document.getElementById("background");
+
+background.onchange = () => {
+  document.body.style.background = background.value;
+  document.body.classList.remove("dark");
+  localStorage.setItem("chromeBackground", background.value);
+  localStorage.setItem("chromeDark", "false");
+};
+
+const savedBackground = localStorage.getItem("chromeBackground");
+if (savedBackground) {
+  background.value = savedBackground;
+  document.body.style.background = savedBackground;
+}
+
+document.getElementById("resetBtn").onclick = () => {
+  document.body.classList.remove("dark");
+  document.body.style.background = "#ffffff";
+  background.value = "#ffffff";
+  localStorage.removeItem("chromeDark");
+  localStorage.removeItem("chromeBackground");
+  panel.classList.remove("show");
+};
+
+renderSites();
+</script>
+</body>
+</html>
